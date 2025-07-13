@@ -1,6 +1,6 @@
 streamlit==1.29.0
 pandas==2.1.4
-plotly-express==0.4.1
-plotly==5.18.0
+plotly==6.1.2
+narwhals>=1.15.1
+packaging>=24.1
 numpy==1.26.2
-openpyxl==3.1.2
