@@ -15,6 +15,7 @@ except ImportError:
     import subprocess
     subprocess.check_call(["pip", "install", "plotly", "plotly-express"])
     st.stop()
+    
 
 # Mengabaikan peringatan yang tidak relevan
 warnings.filterwarnings('ignore')
