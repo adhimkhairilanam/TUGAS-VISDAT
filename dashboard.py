@@ -1,7 +1,13 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
+
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+except ImportError:
+    st.error("Plotly dependencies not found. Please run: pip install plotly")
+    st.stop()
+
 import warnings
 
 # Mengabaikan peringatan yang tidak relevan
