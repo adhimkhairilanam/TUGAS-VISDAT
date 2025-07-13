@@ -1,14 +1,20 @@
 import streamlit as st
 import pandas as pd
+import warnings
 
+# Check and import plotly
 try:
     import plotly.express as px
     import plotly.graph_objects as go
 except ImportError:
-    st.error("Plotly dependencies not found. Please run: pip install plotly")
+    st.error("""
+        Plotly not found. Installing required packages...
+        Please wait a moment and refresh the page.
+        If the error persists, run: pip install plotly plotly-express
+    """)
+    import subprocess
+    subprocess.check_call(["pip", "install", "plotly", "plotly-express"])
     st.stop()
-
-import warnings
 
 # Mengabaikan peringatan yang tidak relevan
 warnings.filterwarnings('ignore')
