@@ -28,18 +28,18 @@ st.markdown("""
 
 @st.cache_data
 def load_keuangan_data():
-    """Memuat dan membersihkan data keuangan dengan metode yang lebih tangguh."""
+    """Memuat dan membersihkan data keuangan dengan penanganan format angka yang tangguh."""
     try:
         df = pd.read_csv('keuangan_data.csv', sep=',')
         df.columns = df.columns.str.strip().str.lower()
         
-        # Tambahkan pemetaan jika nama kolom di CSV berbeda
+        # Pemetaan nama kolom untuk mengantisipasi perbedaan penamaan di CSV
         column_mapping = {
             'plat nomor': 'nopol',
             'volume (l)': 'jumlahair',
             'jumlah air': 'jumlahair',
-            'pendapatan': 'pemasukan',    # Antisipasi jika di CSV namanya 'pendapatan'
-            'uang masuk': 'pemasukan'     # Antisipasi jika di CSV namanya 'uang masuk'
+            'pendapatan': 'pemasukan',
+            'uang masuk': 'pemasukan'
         }
         df = df.rename(columns=column_mapping)
         
@@ -47,7 +47,7 @@ def load_keuangan_data():
         df['tanggal'] = pd.to_datetime(df['tanggal'], format='%d/%m/%Y', errors='coerce')
         df.dropna(subset=['tanggal'], inplace=True)
         
-        # Bersihkan kolom numerik (menangani 'Rp', titik, dan koma)
+        # Bersihkan kolom numerik (menghilangkan 'Rp', titik, dan mengubah koma menjadi titik desimal)
         for col in ['pemasukan', 'pengeluaran', 'jumlahair']:
             if col in df.columns:
                 df[col] = (
@@ -76,7 +76,6 @@ def load_gps_data():
         df = pd.read_csv('data_gps.csv', sep=',')
         df.columns = df.columns.str.strip().str.lower()
         
-        # Perbaikan nama kolom dan validasi data
         if 'nama lokasi' in df.columns:
             df = df.rename(columns={'nama lokasi': 'lokasi'})
         
@@ -153,22 +152,20 @@ def main():
         center_lat = df_gps['latitude'].mean()
         center_lon = df_gps['longitude'].mean()
         
-        fig_map = go.Figure(go.Scattermapbox(
-            lat=df_gps['latitude'],
-            lon=df_gps['longitude'],
-            mode='markers',
-            marker=dict(size=12, color='red'),  # Diubah menggunakan dict() agar aman
-            text=df_gps['lokasi'],
-        ))
-
-        fig_map.update_layout(
-            title='Sebaran Lokasi Pengiriman',
+        # Menggunakan px.scatter_mapbox agar aman dari error versi Plotly terbaru
+        fig_map = px.scatter_mapbox(
+            df_gps,
+            lat='latitude',
+            lon='longitude',
+            text='lokasi',
+            zoom=11,
+            center={'lat': center_lat, 'lon': center_lon},
             height=500,
-            mapbox=dict(
-                style='open-street-map',  # Using OpenStreetMap
-                center=dict(lat=center_lat, lon=center_lon),
-                zoom=11
-            ),
+            title='Sebaran Lokasi Pengiriman'
+        )
+        fig_map.update_traces(marker=dict(size=12, color='red'))
+        fig_map.update_layout(
+            mapbox_style='open-street-map',
             margin=dict(r=0, t=30, l=0, b=0),
         )
         
