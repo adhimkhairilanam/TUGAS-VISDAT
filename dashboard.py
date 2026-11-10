@@ -30,29 +30,32 @@ st.markdown("""
 def load_keuangan_data():
     """Memuat dan membersihkan data keuangan dengan metode yang lebih tangguh."""
     try:
-        # Baca CSV dengan memperhatikan kolom yang tergabung
         df = pd.read_csv('keuangan_data.csv', sep=',')
-        # Lowercase dan strip whitespace dari nama kolom
         df.columns = df.columns.str.strip().str.lower()
         
-        # Pemetaan nama kolom
+        # Tambahkan pemetaan jika nama kolom di CSV berbeda
         column_mapping = {
             'plat nomor': 'nopol',
             'volume (l)': 'jumlahair',
-            'jumlah air': 'jumlahair'
+            'jumlah air': 'jumlahair',
+            'pendapatan': 'pemasukan',    # Antisipasi jika di CSV namanya 'pendapatan'
+            'uang masuk': 'pemasukan'     # Antisipasi jika di CSV namanya 'uang masuk'
         }
-        
-        # Terapkan pemetaan kolom
         df = df.rename(columns=column_mapping)
         
         # Konversi tanggal
         df['tanggal'] = pd.to_datetime(df['tanggal'], format='%d/%m/%Y', errors='coerce')
         df.dropna(subset=['tanggal'], inplace=True)
         
-        # Bersihkan kolom numerik
+        # Bersihkan kolom numerik (menangani 'Rp', titik, dan koma)
         for col in ['pemasukan', 'pengeluaran', 'jumlahair']:
             if col in df.columns:
-                df[col] = df[col].astype(str).str.replace('Rp', '').str.replace('.', '')
+                df[col] = (
+                    df[col].astype(str)
+                    .str.replace('Rp', '', case=False)
+                    .str.replace('.', '', regex=False)
+                    .str.replace(',', '.', regex=False)
+                )
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
         
         # Bersihkan kolom kategorikal
@@ -64,7 +67,6 @@ def load_keuangan_data():
         return df
     except Exception as e:
         st.error(f"Gagal memuat keuangan_data.csv: {str(e)}")
-        st.write("Struktur data yang ditemukan:", df.columns.tolist())
         return None
 
 @st.cache_data
@@ -155,7 +157,7 @@ def main():
             lat=df_gps['latitude'],
             lon=df_gps['longitude'],
             mode='markers',
-            marker=go.scattermapbox.Marker(size=12, color='red'),
+            marker=dict(size=12, color='red'),  # Diubah menggunakan dict() agar aman
             text=df_gps['lokasi'],
         ))
 
